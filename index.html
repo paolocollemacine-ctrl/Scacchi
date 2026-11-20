@@ -571,6 +571,123 @@
     line-height: 1.35;
   }
 
+
+  .coach-live-bar {
+    background: #1c1b18;
+    border: 1px solid #3f3c37;
+    border-radius: 6px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.8rem;
+  }
+  .coach-live-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .coach-toggle-btn {
+    padding: 3px 9px;
+    font-size: 0.74rem;
+    border-radius: 12px;
+  }
+  .coach-toggle-btn.on {
+    background: rgba(129, 182, 76, 0.22);
+    border-color: var(--accent);
+    color: #b5e685;
+  }
+  .coach-live-msg {
+    color: var(--muted);
+    line-height: 1.4;
+    font-size: 0.78rem;
+  }
+  .coach-live-msg.warn {
+    color: #ff9e9e;
+    background: rgba(224, 82, 82, 0.14);
+    border-left: 3px solid var(--danger);
+    padding: 6px 8px;
+    border-radius: 4px;
+  }
+  .coach-live-msg.info {
+    color: #9fd2f7;
+    background: rgba(75, 163, 227, 0.12);
+    border-left: 3px solid var(--blue);
+    padding: 6px 8px;
+    border-radius: 4px;
+  }
+  .coach-brake-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .coach-brake-actions button {
+    flex: 1;
+    padding: 5px 8px;
+    font-size: 0.76rem;
+  }
+  .coach-card {
+    background: var(--panel-alt);
+    border-radius: 6px;
+    padding: 11px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    font-size: 0.82rem;
+  }
+  .coach-card h4 {
+    font-size: 0.86rem;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .coach-diag-bars {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    text-align: center;
+  }
+  .coach-diag-pill {
+    background: #1c1b18;
+    padding: 6px 4px;
+    border-radius: 5px;
+  }
+  .coach-diag-pill strong { display: block; font-size: 0.98rem; color: #fff; }
+  .coach-diag-pill span { font-size: 0.68rem; color: var(--muted); }
+  .coach-scenario-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 195px;
+    overflow-y: auto;
+  }
+  .scenario-item {
+    background: #1c1b18;
+    border: 1px solid #3f3c37;
+    border-radius: 6px;
+    padding: 7px 9px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .scenario-item strong { display: block; font-size: 0.8rem; color: #fff; }
+  .scenario-item small { font-size: 0.7rem; color: var(--muted); }
+  .scenario-item button { padding: 4px 9px; font-size: 0.74rem; white-space: nowrap; }
+  .routine-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #1c1b18;
+    padding: 6px 9px;
+    border-radius: 5px;
+    gap: 8px;
+    font-size: 0.78rem;
+  }
+  .routine-row button { padding: 3px 8px; font-size: 0.72rem; }
+
 </style>
 </head>
 <body>
@@ -588,6 +705,7 @@
     <button class="mode-btn active" id="mode-btn-game">♟️ Partita</button>
     <button class="mode-btn" id="mode-btn-puzzle">🧩 Problemi ∞</button>
     <button class="mode-btn" id="mode-btn-opening">📖 Aperture</button>
+    <button class="mode-btn" id="mode-btn-coach">🎓 Coach</button>
   </div>
 
   <div class="elo-header" id="game-elo-header">
@@ -645,6 +763,18 @@
     <div class="status-banner">
       <span id="status-text">Tocca a te (Bianco)</span>
       <div class="spinner" id="thinking-spinner"></div>
+    </div>
+
+    <div class="coach-live-bar" id="coach-live-bar">
+      <div class="coach-live-top">
+        <span style="font-weight:700; color:#fff;">🎓 Coach Live</span>
+        <button type="button" class="coach-toggle-btn on" id="btn-coach-live-toggle">ON • Anti-Svista &amp; Indizi</button>
+      </div>
+      <div class="coach-live-msg" id="coach-live-msg">Attivo: ti avvisa se stai per commettere una svista, spiega le minacce avversarie e offre indizi a 3 livelli.</div>
+      <div class="coach-brake-actions" id="coach-brake-actions" style="display:none;">
+        <button type="button" class="primary" id="btn-coach-retry-move">↩ Riprova la mossa</button>
+        <button type="button" id="btn-coach-ignore-brake">Ignora e continua</button>
+      </div>
     </div>
 
     <div class="controls-grid">
@@ -887,6 +1017,54 @@
         <span id="op-mastery-count">Completate: 0/40</span>
       </div>
       <div class="opening-moves-strip" id="op-moves-strip"></div>
+    </div>
+  </div>
+
+
+  <!-- Right Column: COACH & PERSONALIZED IMPROVEMENT SIDEBAR -->
+  <div class="sidebar" id="coach-sidebar" style="display:none;">
+    <div class="status-banner" style="border-left-color: var(--warn);">
+      <span id="coach-tier-banner">🎓 Coach Personale</span>
+      <span id="coach-tier-badge" class="badge" style="color:var(--warn); border-color:var(--warn); background:rgba(230,159,56,0.14);">Fascia 1200</span>
+    </div>
+
+    <!-- Card 1: Mistake Replay Drill -->
+    <div class="coach-card" id="coach-mistakes-card">
+      <h4>
+        <span>🔁 Rigioca i tuoi Errori</span>
+        <span id="coach-mistakes-count" class="badge">0 salvati</span>
+      </h4>
+      <div id="coach-mistake-feedback" class="puzzle-feedback" style="padding:8px 10px; font-size:0.8rem;">
+        Gioca qualche partita: ogni tuo Errore o Svista verrà salvato qui per rigiocarlo finché non lo risolvi al primo tentativo!
+      </div>
+      <div class="controls-grid">
+        <button class="primary" id="btn-coach-start-mistake">▶ Allenati sugli Errori</button>
+        <button id="btn-coach-mistake-hint" disabled>💡 Indizio</button>
+      </div>
+    </div>
+
+    <!-- Card 2: Automatic Diagnostics & Adaptive Plan -->
+    <div class="coach-card">
+      <h4>
+        <span>📊 Diagnostica &amp; Piano Adattivo</span>
+        <span id="coach-focus-tag" style="font-size:0.72rem; color:var(--accent);">Focus: Tattica</span>
+      </h4>
+      <div class="coach-diag-bars">
+        <div class="coach-diag-pill"><strong id="diag-open-err">0</strong><span>Errori Apertura</span></div>
+        <div class="coach-diag-pill"><strong id="diag-mid-err">0</strong><span>Errori Mediogioco</span></div>
+        <div class="coach-diag-pill"><strong id="diag-end-err">0</strong><span>Errori Finale</span></div>
+      </div>
+      <div id="coach-diag-advice" style="font-size:0.78rem; color:var(--muted); line-height:1.4;"></div>
+      <div id="coach-routine-list" style="display:flex; flex-direction:column; gap:5px; margin-top:2px;"></div>
+    </div>
+
+    <!-- Card 3: Endgame & Critical Situations Gym -->
+    <div class="coach-card">
+      <h4>
+        <span>🏋️ Palestra Finali &amp; Situazioni Critiche</span>
+        <span style="font-size:0.7rem; color:var(--muted);">vs Stockfish</span>
+      </h4>
+      <div class="coach-scenario-list" id="coach-scenario-list"></div>
     </div>
   </div>
 
@@ -3384,6 +3562,8 @@ window.addEventListener('pointerup', (e) => {
           attemptPuzzleMove(matching, pColor);
         } else if (appMode === 'opening') {
           attemptOpeningMove(matching);
+        } else if (appMode === 'coach') {
+          attemptCoachMistakeMove(matching);
         } else {
           attemptPlayerMove(matching);
         }
@@ -3421,11 +3601,17 @@ function attemptPlayerMove(matchingMoves) {
   }
 }
 
-async function executePlayerMove(moveInt) {
+async function executePlayerMove(moveInt, bypassCoachBrake = false) {
   const fenBefore = game.getFen();
   const san = game.moveToSan(moveInt);
   const playedUci = game.moveToUci(moveInt);
   const playerSign = playerColor === WHITE ? 1 : -1;
+
+  coachHintStage = 0;
+  coachHintCached = null;
+  coachBrakePending = null;
+  const brakeBox = document.getElementById('coach-brake-actions');
+  if (brakeBox) brakeBox.style.display = 'none';
 
   game.makeMove(moveInt, true);
 
@@ -3484,6 +3670,37 @@ async function executePlayerMove(moveInt) {
         fenBefore, playedUci, bestMoveBefore, bestSanBefore, cpLoss, badge, beforeRes.pv || [], newPlyIdx, playerColor
       );
 
+  // Record Mistake/Blunder for personalized "Rigioca i tuoi Errori"
+  if (!inBook && (badge.cls === 'mistake' || badge.cls === 'blunder') && bestMoveBefore && playedUci !== bestMoveBefore) {
+    recordUserMistake({
+      fen: fenBefore,
+      playedSan: san,
+      bestUci: bestMoveBefore,
+      bestSan: bestSanBefore,
+      cpLoss: Math.round(cpLoss),
+      phase: detectGamePhase(fenBefore, newPlyIdx),
+      why: explainSingleMoveIdea(fenBefore, bestMoveBefore),
+      side: playerColor === WHITE ? 'w' : 'b'
+    });
+  }
+
+  // COACH LIVE BLUNDER-BRAKE: intercept severe mistakes before AI responds!
+  if (coachLiveEnabled && !bypassCoachBrake && !inBook && !statusAfter.over && cpLoss >= 140 && bestMoveBefore && playedUci !== bestMoveBefore) {
+    isEngineThinking = false;
+    document.getElementById('thinking-spinner').classList.remove('active');
+    coachBrakePending = { moveInt, newPlyIdx, fenBefore, bestMoveBefore, bestSanBefore, cpLoss };
+    updateMoveHistoryUI();
+    updateInspectorBox(newPlyIdx);
+    drawEvalChart();
+    renderBoard();
+    const msgEl = document.getElementById('coach-live-msg');
+    msgEl.className = 'coach-live-msg warn';
+    msgEl.innerHTML = `<strong>🛑 Freno Anti-Svista!</strong> Con <b>${san}</b> perdi circa <b>${(cpLoss/100).toFixed(1)} pedoni</b>. Vuoi riprovare a trovare una mossa migliore?`;
+    document.getElementById('coach-brake-actions').style.display = 'flex';
+    document.getElementById('status-text').textContent = 'Coach Live: svista rilevata! Riprova o continua.';
+    return;
+  }
+
   updateMoveHistoryUI();
   updateInspectorBox(newPlyIdx);
   drawEvalChart();
@@ -3529,6 +3746,17 @@ async function executePlayerMove(moveInt) {
   updateMoveHistoryUI();
   drawEvalChart();
   updateStatus();
+
+  if (coachLiveEnabled && !game.getGameStatus().over && plyData.length >= 2) {
+    const aiEntry = plyData[plyData.length - 1];
+    const prevFenAi = plyData[plyData.length - 2].fen;
+    if (aiEntry && aiEntry.uci) {
+      const threatIdea = explainSingleMoveIdea(prevFenAi, aiEntry.uci);
+      const msgEl = document.getElementById('coach-live-msg');
+      msgEl.className = 'coach-live-msg info';
+      msgEl.innerHTML = `<strong>👀 Piano avversario (${aiEntry.san}):</strong> ${threatIdea}`;
+    }
+  }
 
   const finalStatus = game.getGameStatus();
   if (finalStatus.over) handleGameOver(finalStatus);
@@ -3983,17 +4211,44 @@ document.getElementById('btn-hint').onclick = async () => {
   if (isEngineThinking || gameFinished || game.turn !== playerColor) return;
   if (viewPly !== plyData.length - 1) selectPlyForReview(plyData.length - 1);
 
-  isEngineThinking = true;
-  document.getElementById('thinking-spinner').classList.add('active');
-  const res = await queryAnalysis(game.getFen(), 420);
-  isEngineThinking = false;
-  document.getElementById('thinking-spinner').classList.remove('active');
+  const curFen = game.getFen();
+  if (!coachHintCached || coachHintCached.fen !== curFen) {
+    isEngineThinking = true;
+    document.getElementById('thinking-spinner').classList.add('active');
+    const res = await queryAnalysis(curFen, 420);
+    isEngineThinking = false;
+    document.getElementById('thinking-spinner').classList.remove('active');
+    if (!res.bestMove) return;
+    coachHintCached = { fen: curFen, bestMove: res.bestMove, idea: explainSingleMoveIdea(curFen, res.bestMove) };
+    coachHintStage = 0;
+  }
 
-  if (res.bestMove) {
-    hintMove = {
-      from: algebraicToSq(res.bestMove.slice(0, 2)),
-      to: algebraicToSq(res.bestMove.slice(2, 4))
-    };
+  const bm = coachHintCached.bestMove;
+  const fromSq = algebraicToSq(bm.slice(0, 2));
+  const toSq = algebraicToSq(bm.slice(2, 4));
+
+  if (!coachLiveEnabled) {
+    hintMove = { from: fromSq, to: toSq };
+    renderBoard();
+    return;
+  }
+
+  coachHintStage = Math.min(3, coachHintStage + 1);
+  const msgEl = document.getElementById('coach-live-msg');
+  msgEl.className = 'coach-live-msg info';
+
+  if (coachHintStage === 1) {
+    msgEl.innerHTML = `<strong>💡 Indizio 1/3 (Idea):</strong> Cerca una mossa che ${coachHintCached.idea} <em>(Clicca ancora per il pezzo)</em>`;
+  } else if (coachHintStage === 2) {
+    const p = game.b[fromSq];
+    const pName = p ? PIECE_IT_ART[p & 7] : 'il pezzo';
+    selectedSq = fromSq;
+    legalMovesForSelected = game.legalMoves().filter(m => M_FROM(m) === fromSq);
+    msgEl.innerHTML = `<strong>💡 Indizio 2/3 (Pezzo):</strong> Muovi <b>${pName}</b> in <b>${bm.slice(0, 2)}</b>. <em>(Clicca ancora per la freccia)</em>`;
+    renderBoard();
+  } else {
+    hintMove = { from: fromSq, to: toSq };
+    msgEl.innerHTML = `<strong>💡 Indizio 3/3 (Soluzione):</strong> Gioca <b>${uciToSanFromFen(curFen, bm)}</b> (freccia blu sulla scacchiera).`;
     renderBoard();
   }
 };
@@ -4455,6 +4710,7 @@ function attemptPuzzleMove(matchingMoves, pColor) {
 function renderCurrentBoard() {
   if (appMode === 'puzzle') renderPuzzleBoard();
   else if (appMode === 'opening') renderOpeningBoard();
+  else if (appMode === 'coach') renderCoachBoard();
   else renderBoard();
 }
 
@@ -4466,9 +4722,11 @@ function switchAppMode(newMode) {
   document.getElementById('mode-btn-game').classList.toggle('active', newMode === 'game');
   document.getElementById('mode-btn-puzzle').classList.toggle('active', newMode === 'puzzle');
   document.getElementById('mode-btn-opening').classList.toggle('active', newMode === 'opening');
+  document.getElementById('mode-btn-coach').classList.toggle('active', newMode === 'coach');
   document.getElementById('game-sidebar').style.display = newMode === 'game' ? 'flex' : 'none';
   document.getElementById('puzzle-sidebar').style.display = newMode === 'puzzle' ? 'flex' : 'none';
   document.getElementById('opening-sidebar').style.display = newMode === 'opening' ? 'flex' : 'none';
+  document.getElementById('coach-sidebar').style.display = newMode === 'coach' ? 'flex' : 'none';
   document.getElementById('game-elo-header').style.display = newMode === 'game' ? 'flex' : 'none';
   document.querySelector('.eval-bar-container').style.visibility = newMode === 'game' ? 'visible' : 'hidden';
   document.querySelector('.replay-bar').style.visibility = newMode === 'game' ? 'visible' : 'hidden';
@@ -4479,6 +4737,9 @@ function switchAppMode(newMode) {
   } else if (newMode === 'opening') {
     initOpeningTrainerIfNeeded();
     renderOpeningBoard();
+  } else if (newMode === 'coach') {
+    refreshCoachDashboard();
+    renderCoachBoard();
   } else {
     document.getElementById('top-player-label').textContent = `Avversario (${playerColor === WHITE ? 'Nero' : 'Bianco'})`;
     document.getElementById('bottom-player-label').textContent = `Tu (${playerColor === WHITE ? 'Bianco' : 'Nero'})`;
@@ -4547,11 +4808,12 @@ function setLocalUpdatedAt(ts) {
 }
 function getFullBackupPayload() {
   return JSON.stringify({
-    v: 3,
+    v: 4,
     updatedAt: getLocalUpdatedAt() || Date.now(),
     gameStats: userStats,
     puzzleStats: puzzleStats,
-    openingMastery: openingMastery
+    openingMastery: openingMastery,
+    userMistakes: userMistakes
   }, null, 2);
 }
 
@@ -5305,6 +5567,13 @@ function applySyncedPayload(parsed) {
     safeSaveOpeningMastery(openingMastery, true);
     if (opInitialized) { populateVariantSelect(); updateOpeningMasteryUI(); }
   }
+  if (Array.isArray(parsed.userMistakes)) {
+    const map = new Map();
+    [...userMistakes, ...parsed.userMistakes].forEach(m => { if (m && m.fen) map.set(m.fen, m); });
+    userMistakes = Array.from(map.values()).slice(-40);
+    safeSaveMistakes(userMistakes, true);
+    if (appMode === 'coach') refreshCoachDashboard();
+  }
   if (parsed.updatedAt) setLocalUpdatedAt(parsed.updatedAt);
   return true;
 }
@@ -5486,6 +5755,414 @@ document.getElementById('gh-sync-pill').onclick = () => {
     const panel = document.getElementById('gh-sync-panel');
     if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
+};
+
+
+
+// ============================================================================
+// COACH PERSONALE, COACH LIVE, MISTAKE REPLAY & ENDGAME GYM
+// ============================================================================
+const COACH_SCENARIOS = [{"id": "eg_kq_k", "title": "Matto di Donna e Re vs Re", "category": "Finale Base", "minElo": 600, "side": "w", "fen": "4k3/8/8/8/8/8/3Q4/4K3 w - - 0 1", "goal": "Spingi il Re nero sul bordo usando la Donna a salto di cavallo, poi avvicina il tuo Re per dare scacco matto (attento allo stallo!)."}, {"id": "eg_kr_k", "title": "Matto di Torre e Re vs Re", "category": "Finale Base", "minElo": 800, "side": "w", "fen": "4k3/8/8/8/8/8/R7/4K3 w - - 0 1", "goal": "Taglia fuori il Re avversario con la Torre e usa l'opposizione dei Re per spingerlo fino all'ultima traversa."}, {"id": "eg_opp_pawn", "title": "Opposizione: Re e Pedone vs Re", "category": "Finale di Pedoni", "minElo": 1000, "side": "w", "fen": "4k3/8/8/4P3/4K3/8/8/8 w - - 0 1", "goal": "Porta il Re bianco DAVANTI al pedone per conquistare le case chiave e promuovere a Donna."}, {"id": "eg_lucena", "title": "Convertire un Pedone in più (Torri)", "category": "Finale di Torri", "minElo": 1200, "side": "w", "fen": "3r4/4P1k1/8/8/8/8/5K2/3R4 w - - 0 1", "goal": "Usa la Torre in modo attivo e proteggi il pedone passato in e7 per forzare la promozione."}, {"id": "crit_attack_king", "title": "Attacco sull'Arrocco", "category": "Situazione Critica", "minElo": 1200, "side": "w", "fen": "r1bq1rk1/ppp2ppp/2n2n2/2bpp3/2B1P3/2NP1N2/PPP2PPP/R1BQ1RK1 w - - 0 7", "goal": "Sviluppa con energia, controlla il centro e prepara un piano concreto contro il lato di Re nero."}, {"id": "crit_defense", "title": "Difesa Sotto Pressione", "category": "Situazione Critica", "minElo": 1350, "side": "b", "fen": "r2q1rk1/ppp2ppp/2n2n2/3p2B1/3P2b1/2NBPN2/PP3PPP/R2Q1RK1 b - - 0 9", "goal": "Difenditi con precisione, neutralizza l'inchiodatura in g5 e cerca controgioco al centro."}];
+
+let coachLiveEnabled = true;
+let coachHintStage = 0;
+let coachHintCached = null;
+let coachBrakePending = null;
+
+const coachBoard = new Board0x88();
+let activeCoachMistakeIdx = -1;
+let coachMistakeHintArrow = null;
+let coachMistakeLastMove = null;
+let coachMistakeSolved = false;
+
+function safeGetMistakes() {
+  try {
+    const raw = localStorage.getItem('adaptive_chess_mistakes');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return [];
+}
+function safeSaveMistakes(arr, fromCloud = false) {
+  try { localStorage.setItem('adaptive_chess_mistakes', JSON.stringify(arr)); } catch (e) {}
+  if (!fromCloud && typeof scheduleCloudPush === 'function') scheduleCloudPush();
+}
+let userMistakes = safeGetMistakes();
+
+function detectGamePhase(fen, plyIdx) {
+  if (plyIdx <= 14) return 'opening';
+  const boardPart = fen.split(' ')[0];
+  let heavyMinor = 0;
+  for (let i = 0; i < boardPart.length; i++) {
+    const c = boardPart[i].toLowerCase();
+    if (c === 'q') heavyMinor += 4;
+    else if (c === 'r') heavyMinor += 2;
+    else if (c === 'b' || c === 'n') heavyMinor += 1;
+  }
+  return heavyMinor <= 8 ? 'endgame' : 'middlegame';
+}
+
+function recordUserMistake(item) {
+  if (!item || !item.fen || !item.bestUci) return;
+  const idx = userMistakes.findIndex(m => m.fen === item.fen);
+  if (idx >= 0) userMistakes[idx] = item;
+  else userMistakes.push(item);
+  if (userMistakes.length > 40) userMistakes.shift();
+  safeSaveMistakes(userMistakes);
+}
+
+// Coach Live Toggle & Blunder-Brake Actions
+document.getElementById('btn-coach-live-toggle').onclick = () => {
+  coachLiveEnabled = !coachLiveEnabled;
+  const btn = document.getElementById('btn-coach-live-toggle');
+  btn.classList.toggle('on', coachLiveEnabled);
+  btn.textContent = coachLiveEnabled ? 'ON • Anti-Svista & Indizi' : 'OFF';
+  const msgEl = document.getElementById('coach-live-msg');
+  msgEl.className = 'coach-live-msg';
+  msgEl.textContent = coachLiveEnabled
+    ? 'Attivo: ti avvisa se stai per commettere una svista, spiega le minacce avversarie e offre indizi a 3 livelli.'
+    : 'Coach Live disattivato: giochi in modalità libera.';
+};
+
+document.getElementById('btn-coach-retry-move').onclick = () => {
+  if (!coachBrakePending) return;
+  coachBrakePending = null;
+  document.getElementById('coach-brake-actions').style.display = 'none';
+  if (plyData.length > 1) {
+    game.unmakeMove();
+    plyData.pop();
+    viewPly = plyData.length - 1;
+  }
+  const msgEl = document.getElementById('coach-live-msg');
+  msgEl.className = 'coach-live-msg info';
+  msgEl.textContent = '👍 Mossa annullata! Osserva bene la posizione e prova un\'altra mossa (o usa 💡 Suggerimento).';
+  renderBoard();
+  updateMoveHistoryUI();
+  drawEvalChart();
+  updateStatus();
+};
+
+document.getElementById('btn-coach-ignore-brake').onclick = async () => {
+  if (!coachBrakePending) return;
+  const pending = coachBrakePending;
+  coachBrakePending = null;
+  document.getElementById('coach-brake-actions').style.display = 'none';
+  // Undo and re-run with bypassCoachBrake = true
+  if (plyData.length > 1) {
+    game.unmakeMove();
+    plyData.pop();
+    viewPly = plyData.length - 1;
+  }
+  await executePlayerMove(pending.moveInt, true);
+};
+
+// Coach Dashboard: Tier, Diagnostics, Daily Routine, Scenarios
+function getEloTierInfo(elo) {
+  if (elo < 1000) return { label: 'Principiante (<1000)', focus: 'Sicurezza dei Pezzi & Matti in 1', puzCat: 'mates', advice: 'A questo livello il 70% delle partite si decide evitando pezzi in presa e vedendo matti in 1.' };
+  if (elo < 1200) return { label: 'Intermedio Base (1000–1200)', focus: 'Forchette, Infilate & Sviluppo', puzCat: 'tactics', advice: 'Ottimo punto per consolidare le tattiche a 2 mosse e completare sempre l\'arrocco entro la mossa 8.' };
+  if (elo < 1450) return { label: 'Intermedio (1200–1450)', focus: 'Mediogioco & Repertorio Aperture', puzCat: 'middlegame', advice: 'Lavora sui piani di mediogioco reali, evita imprecisioni strutturali e padroneggia i finali base.' };
+  if (elo < 1700) return { label: 'Avanzato (1450–1700)', focus: 'Calcolo Profondo & Finali', puzCat: 'middlegame', advice: 'Affina il calcolo a 3-4 mosse, sfrutta le varianti complete delle aperture e converti i finali di Torre.' };
+  return { label: 'Esperto (1700+)', focus: 'Precisione Strategica & Finali', puzCat: 'middlegame', advice: 'Concentrati su posizioni critiche contro Stockfish e azzera le imprecisioni nel passaggio al finale.' };
+}
+
+function refreshCoachDashboard() {
+  const tier = getEloTierInfo(userStats.elo);
+  document.getElementById('coach-tier-badge').textContent = `${userStats.elo} Elo`;
+  document.getElementById('coach-tier-banner').textContent = `🎓 ${tier.label}`;
+  document.getElementById('coach-focus-tag').textContent = `Focus: ${tier.focus}`;
+  document.getElementById('coach-mistakes-count').textContent = `${userMistakes.length} salvati`;
+
+  // Diagnostics by phase
+  let opErr = 0, midErr = 0, endErr = 0;
+  userMistakes.forEach(m => {
+    if (m.phase === 'opening') opErr++;
+    else if (m.phase === 'endgame') endErr++;
+    else midErr++;
+  });
+  document.getElementById('diag-open-err').textContent = opErr;
+  document.getElementById('diag-mid-err').textContent = midErr;
+  document.getElementById('diag-end-err').textContent = endErr;
+
+  let diagText = tier.advice;
+  if (userMistakes.length >= 3) {
+    if (opErr >= midErr && opErr >= endErr) diagText = '📌 Diagnostica: la maggior parte dei tuoi errori avviene in Apertura. Ripassa le varianti in 📖 Aperture!';
+    else if (endErr >= midErr && endErr > 0) diagText = '📌 Diagnostica: perdi punti preziosi nei Finali. Allenati nella Palestra Finali qui sotto!';
+    else diagText = '📌 Diagnostica: la maggior parte dei tuoi errori avviene nel Mediogioco. Usa "Rigioca i tuoi Errori" e i Problemi di Mediogioco!';
+  }
+  document.getElementById('coach-diag-advice').textContent = diagText;
+
+  // Daily Routine Quick-Launch
+  const rList = document.getElementById('coach-routine-list');
+  rList.innerHTML = `
+    <div class="routine-row">
+      <span>1. Risolvi 5 problemi (${tier.focus.split('&')[0].trim()})</span>
+      <button type="button" onclick="launchTargetedPuzzles('${tier.puzCat}')">Vai ▶</button>
+    </div>
+    <div class="routine-row">
+      <span>2. Ripassa 1 variante di Apertura</span>
+      <button type="button" onclick="switchAppMode('opening')">Vai ▶</button>
+    </div>
+    <div class="routine-row">
+      <span>3. Gioca 1 partita con Coach Live ON</span>
+      <button type="button" onclick="coachLiveEnabled=true; switchAppMode('game')">Vai ▶</button>
+    </div>
+  `;
+
+  // Populate Endgame & Critical Scenarios
+  const scList = document.getElementById('coach-scenario-list');
+  scList.innerHTML = '';
+  COACH_SCENARIOS.forEach(sc => {
+    const div = document.createElement('div');
+    div.className = 'scenario-item';
+    div.innerHTML = `
+      <div>
+        <strong>${sc.title}</strong>
+        <small>${sc.category} • Consigliato ${sc.minElo}+ Elo</small>
+      </div>
+      <button type="button" class="analysis-btn" onclick="launchCoachScenario('${sc.id}')">Gioca ⚔️</button>
+    `;
+    scList.appendChild(div);
+  });
+
+  // Mistake replay button state
+  const startBtn = document.getElementById('btn-coach-start-mistake');
+  startBtn.disabled = userMistakes.length === 0;
+  if (userMistakes.length === 0) {
+    activeCoachMistakeIdx = -1;
+    document.getElementById('btn-coach-mistake-hint').disabled = true;
+    document.getElementById('coach-mistake-feedback').className = 'puzzle-feedback';
+    document.getElementById('coach-mistake-feedback').textContent = 'Nessun errore in coda! Gioca una partita: ogni tuo Errore o Svista verrà salvato qui automaticamente.';
+  }
+}
+
+function launchTargetedPuzzles(cat) {
+  const sel = document.getElementById('select-puzzle-cat');
+  if (sel) sel.value = cat;
+  nextPrefetchedPuzzle = null;
+  switchAppMode('puzzle');
+  loadPuzzle();
+}
+
+async function launchCoachScenario(scId) {
+  const sc = COACH_SCENARIOS.find(s => s.id === scId);
+  if (!sc) return;
+  switchAppMode('game');
+  playerColor = sc.side === 'b' ? BLACK : WHITE;
+  game.loadFen(sc.fen);
+  gameFinished = false;
+  pvPreview = null; selectedSq = -1; legalMovesForSelected = []; hintMove = null; bestAltMove = null;
+  currentAiElo = userStats.elo;
+
+  plyData = [{
+    fen: game.getFen(), evalWhite: 0, san: sc.title, uci: null,
+    bestMoveBefore: null, bestSanBefore: null, cpLoss: 0, wpLoss: 0, badge: null, color: null
+  }];
+  viewPly = 0;
+
+  document.getElementById('top-player-label').textContent = `Palestra: ${sc.title}`;
+  document.getElementById('bottom-player-label').textContent = `Tu (${playerColor === WHITE ? 'Bianco' : 'Nero'})`;
+  document.getElementById('btn-switch-side').textContent = playerColor === WHITE ? 'Gioca col Nero' : 'Gioca col Bianco';
+
+  const msgEl = document.getElementById('coach-live-msg');
+  msgEl.className = 'coach-live-msg info';
+  msgEl.innerHTML = `<strong>🏋️ Obiettivo (${sc.title}):</strong> ${sc.goal}`;
+
+  syncEloDisplays(); updateMoveHistoryUI(); updateInspectorBox(0); drawEvalChart(); renderBoard(); updateStatus();
+}
+
+// Mistake Replay Interactive Drill on main board
+function loadNextCoachMistake() {
+  if (userMistakes.length === 0) {
+    refreshCoachDashboard();
+    renderCoachBoard();
+    return;
+  }
+  activeCoachMistakeIdx = userMistakes.length - 1; // Most recent mistake first
+  const m = userMistakes[activeCoachMistakeIdx];
+  coachBoard.loadFen(m.fen);
+  coachMistakeHintArrow = null;
+  coachMistakeLastMove = null;
+  coachMistakeSolved = false;
+  selectedSq = -1;
+  legalMovesForSelected = [];
+
+  const toMove = coachBoard.turn === WHITE ? 'Bianco' : 'Nero';
+  document.getElementById('top-player-label').textContent = `Tuo Errore (-${m.cpLoss} cp)`;
+  document.getElementById('bottom-player-label').textContent = `Trova la mossa migliore (${toMove})`;
+  document.getElementById('btn-coach-mistake-hint').disabled = false;
+
+  const fb = document.getElementById('coach-mistake-feedback');
+  fb.className = 'puzzle-feedback';
+  fb.innerHTML = `In partita avevi giocato <b>${m.playedSan}</b> (-${m.cpLoss} cp). Trova la mossa migliore per il ${toMove}!`;
+  renderCoachBoard();
+}
+
+function renderCoachBoard() {
+  const boardEl = document.getElementById('board');
+  boardEl.innerHTML = '';
+
+  const hasActive = activeCoachMistakeIdx >= 0 && activeCoachMistakeIdx < userMistakes.length;
+  const displayB = hasActive ? coachBoard : game;
+  const pColor = hasActive ? (userMistakes[activeCoachMistakeIdx].side === 'b' ? BLACK : WHITE) : WHITE;
+  const inCheck = displayB.inCheck();
+  const checkKingSq = inCheck ? displayB.kingSq[displayB.turn >> 3] : -1;
+
+  for (let rIdx = 0; rIdx < 8; rIdx++) {
+    for (let fIdx = 0; fIdx < 8; fIdx++) {
+      const r = pColor === WHITE ? rIdx : 7 - rIdx;
+      const f = pColor === WHITE ? fIdx : 7 - fIdx;
+      const sq = (r << 4) | f;
+      const isLight = ((r + f) & 1) === 0;
+
+      const sqDiv = document.createElement('div');
+      sqDiv.className = `square ${isLight ? 'light' : 'dark'}`;
+      sqDiv.dataset.sq = sq;
+
+      if (selectedSq === sq) sqDiv.classList.add('selected');
+      if (coachMistakeLastMove && (sq === coachMistakeLastMove.from || sq === coachMistakeLastMove.to)) sqDiv.classList.add('last-move');
+      if (coachMistakeHintArrow && (sq === coachMistakeHintArrow.from || sq === coachMistakeHintArrow.to)) sqDiv.classList.add('hint-sq');
+      if (sq === checkKingSq) sqDiv.classList.add('in-check');
+
+      if (fIdx === 0) {
+        const rankSpan = document.createElement('span');
+        rankSpan.className = 'coord rank';
+        rankSpan.textContent = 8 - r;
+        sqDiv.appendChild(rankSpan);
+      }
+      if (rIdx === 7) {
+        const fileSpan = document.createElement('span');
+        fileSpan.className = 'coord file';
+        fileSpan.textContent = String.fromCharCode(97 + f);
+        sqDiv.appendChild(fileSpan);
+      }
+
+      const piece = displayB.b[sq];
+      if (piece) {
+        const pDiv = document.createElement('div');
+        pDiv.className = 'piece';
+        pDiv.innerHTML = PIECE_SVGS[piece];
+        sqDiv.appendChild(pDiv);
+      }
+
+      if (hasActive) {
+        const isTarget = legalMovesForSelected.some(m => M_TO(m) === sq);
+        if (isTarget) {
+          const dot = document.createElement('div');
+          dot.className = piece ? 'legal-capture' : 'legal-dot';
+          sqDiv.appendChild(dot);
+        }
+      }
+
+      sqDiv.addEventListener('pointerdown', (e) => handleCoachPointerDown(e, sq, pColor));
+      boardEl.appendChild(sqDiv);
+    }
+  }
+
+  updateCapturedMaterial(displayB);
+  const svg = document.getElementById('arrow-layer');
+  svg.innerHTML = '';
+  if (coachMistakeHintArrow) {
+    const color = 'rgba(75, 163, 227, 0.9)';
+    const getCoords = (sq) => {
+      const r = sq >> 4, f = sq & 7;
+      const col = pColor === WHITE ? f : 7 - f;
+      const row = pColor === WHITE ? r : 7 - r;
+      return { x: col * 100 + 50, y: row * 100 + 50 };
+    };
+    const p1 = getCoords(coachMistakeHintArrow.from), p2 = getCoords(coachMistakeHintArrow.to);
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    defs.innerHTML = `<marker id="arrowhead" markerWidth="4" markerHeight="4" refX="2.5" refY="2" orient="auto"><polygon points="0 0, 4 2, 0 4" fill="${color}" /></marker>`;
+    svg.appendChild(defs);
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', p1.x); line.setAttribute('y1', p1.y);
+    line.setAttribute('x2', p2.x); line.setAttribute('y2', p2.y);
+    line.setAttribute('stroke', color); line.setAttribute('stroke-width', '16');
+    line.setAttribute('stroke-linecap', 'round'); line.setAttribute('marker-end', 'url(#arrowhead)');
+    svg.appendChild(line);
+  }
+}
+
+function handleCoachPointerDown(e, sq, pColor) {
+  if (activeCoachMistakeIdx < 0 || coachMistakeSolved || coachBoard.turn !== pColor) return;
+  const matching = legalMovesForSelected.filter(m => M_TO(m) === sq);
+  if (matching.length > 0) {
+    attemptCoachMistakeMove(matching);
+    return;
+  }
+  const piece = coachBoard.b[sq];
+  if (piece && (piece & 8) === pColor) {
+    selectedSq = sq;
+    legalMovesForSelected = coachBoard.legalMoves().filter(m => M_FROM(m) === sq);
+    renderCoachBoard();
+    const sqEl = document.querySelector(`.square[data-sq="${sq}"] .piece`);
+    if (sqEl) {
+      dragOriginSq = sq;
+      dragPieceEl = sqEl.cloneNode(true);
+      dragPieceEl.style.position = 'fixed';
+      dragPieceEl.style.width = sqEl.offsetWidth + 'px';
+      dragPieceEl.style.height = sqEl.offsetHeight + 'px';
+      dragPieceEl.style.pointerEvents = 'none';
+      dragPieceEl.style.zIndex = '1000';
+      dragPieceEl.style.transform = 'translate(-50%, -50%) scale(1.12)';
+      dragPieceEl.style.left = e.clientX + 'px';
+      dragPieceEl.style.top = e.clientY + 'px';
+      document.body.appendChild(dragPieceEl);
+      sqEl.style.opacity = '0.25';
+    }
+  } else {
+    selectedSq = -1;
+    legalMovesForSelected = [];
+    renderCoachBoard();
+  }
+}
+
+function attemptCoachMistakeMove(matchingMoves) {
+  const m = matchingMoves[0];
+  handleCoachMistakeMove(m);
+}
+
+function handleCoachMistakeMove(moveInt) {
+  if (activeCoachMistakeIdx < 0 || coachMistakeSolved) return;
+  const item = userMistakes[activeCoachMistakeIdx];
+  const playedUci = coachBoard.moveToUci(moveInt);
+  const fb = document.getElementById('coach-mistake-feedback');
+
+  if (playedUci === item.bestUci) {
+    coachBoard.makeMove(moveInt, false);
+    coachMistakeLastMove = { from: M_FROM(moveInt), to: M_TO(moveInt) };
+    coachMistakeHintArrow = null;
+    coachMistakeSolved = true;
+    selectedSq = -1; legalMovesForSelected = [];
+
+    // Remove mastered mistake from queue!
+    userMistakes.splice(activeCoachMistakeIdx, 1);
+    safeSaveMistakes(userMistakes);
+    activeCoachMistakeIdx = -1;
+
+    fb.className = 'puzzle-feedback ok';
+    fb.innerHTML = `✅ Ottimo! <b>${item.bestSan}</b> era la mossa giusta: ${item.why} (Errore rimosso dalla coda!).`;
+    refreshCoachDashboard();
+    renderCoachBoard();
+  } else {
+    selectedSq = -1; legalMovesForSelected = [];
+    fb.className = 'puzzle-feedback err';
+    fb.innerHTML = `❌ Non è ancora la migliore. Riprova oppure clicca <b>💡 Indizio</b>.`;
+    renderCoachBoard();
+  }
+}
+
+document.getElementById('mode-btn-coach').onclick = () => switchAppMode('coach');
+document.getElementById('btn-coach-start-mistake').onclick = () => loadNextCoachMistake();
+document.getElementById('btn-coach-mistake-hint').onclick = () => {
+  if (activeCoachMistakeIdx < 0 || coachMistakeSolved) return;
+  const item = userMistakes[activeCoachMistakeIdx];
+  coachMistakeHintArrow = {
+    from: algebraicToSq(item.bestUci.slice(0, 2)),
+    to: algebraicToSq(item.bestUci.slice(2, 4))
+  };
+  const fb = document.getElementById('coach-mistake-feedback');
+  fb.className = 'puzzle-feedback';
+  fb.innerHTML = `💡 Indizio: gioca <b>${item.bestSan}</b> perché ${item.why}`;
+  renderCoachBoard();
 };
 
 
